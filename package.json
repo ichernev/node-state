@@ -1,0 +1,21 @@
+{
+  "author": "Nick Fisher",
+  "name": "node-state",
+  "description": "A finite state machine (FSM) implementation for node.js",
+  "version": "1.0.0",
+  "main": "index",
+  "homepage": "https://github.com/nrf110/node-state",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nrf110/node-state.git"
+  },
+  "engines": {
+    "node": "~0.6.6"
+  },
+  "dependencies": {
+    "eventemitter2": ">=0.4.1"
+  },
+  "devDependencies": {
+    "jasmine-node": ">=1.0.13"
+  }
+}
