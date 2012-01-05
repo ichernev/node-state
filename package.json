@@ -1,13 +1,13 @@
 {
   "author": "Nick Fisher",
-  "name": "node_machine",
+  "name": "node-state",
   "description": "A finite state machine (FSM) implementation for node.js",
   "version": "1.0.0",
   "main": "index",
-  "homepage": "https://github.com/nrf110/nodemachine",
+  "homepage": "https://github.com/nrf110/node-state",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nrf110/nodemachine.git"
+    "url": "git://github.com/nrf110/node-state.git"
   },
   "engines": {
     "node": "~0.6.6"
