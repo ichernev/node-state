@@ -2,7 +2,7 @@
   "author": "Nick Fisher",
   "name": "node-state",
   "description": "A finite state machine (FSM) implementation for node.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index",
   "homepage": "https://github.com/nrf110/node-state",
   "repository": {
