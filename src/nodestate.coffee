@@ -19,9 +19,6 @@ class NodeState
 			@config.states[state_name]['Enter'] or= (data) ->
 				@current_data = data
 
-		@raise = (event_name, data) =>
-			@_notifier.emit event_name, data
-
 		@goto = (state_name, data) =>
 			@current_data = data or @current_data
 			previous_state_name = @current_state_name
@@ -39,7 +36,7 @@ class NodeState
 			for event_name, callback of @current_state
 				console.log "registering listener for event: #{event_name}"
 				@_notifier.on event_name, callback
-				
+
 			transitions = []
 			for transition in @config.transitions when ((transition[0] is previous_state_name or transition[0] is '*') and (transition[1] is @current_state_name or transition[1] is '*'))
 				transitions.push transition
@@ -53,12 +50,13 @@ class NodeState
 							isDone(data)
 			
 				doTransition transitions[0], @current_data, transitions.slice(1), (data) =>
-					@raise 'Enter'
+					@_notifier.emit 'Enter', @current_data
 			else
-				@raise 'Enter', @current_data
+				@_notifier.emit 'Enter', @current_data
 		if @config.autostart
 			@goto @current_state_name
-
+	@raise: (event_name, data) =>
+		@_notifier.emit event_name, data
 	wait: (milliseconds) =>
 		@_current_timeout = setTimeout ( =>
 			@_notifier.emit 'WaitTimeout', milliseconds, @current_data
