@@ -1,7 +1,7 @@
 NodeState = require '../lib/nodestate'
  
 describe 'NodeState', ->
-	###
+	
 	it 'should have a current state of A', ->
 		config =
 			states:
@@ -39,7 +39,7 @@ describe 'NodeState', ->
 
 		expect(goto_called).toBeFalsy()
 		fsm.stop()
-	###
+	
 	it 'should call goto when autostart is true', ->
 		goto_called = false
 		fsm = new NodeState
@@ -54,7 +54,7 @@ describe 'NodeState', ->
 		waits 50
 		expect(goto_called).toBeTruthy()
 		fsm.stop()
-	###
+	
 	it 'should transition from A to B after 50 milliseconds', ->
 		fsm = new NodeState
 			initial_state: 'A'
@@ -112,4 +112,4 @@ describe 'NodeState', ->
 			expect(fsm.current_state_name).toEqual('B')
 			expect(fsm.current_data).toEqual(1)
 			fsm.stop()
-	###
+	

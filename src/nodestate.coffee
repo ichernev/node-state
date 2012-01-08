@@ -55,7 +55,7 @@ class NodeState
 				@_notifier.emit 'Enter', @current_data
 		if @config.autostart
 			@goto @current_state_name
-	@raise: (event_name, data) =>
+	raise: (event_name, data) =>
 		@_notifier.emit event_name, data
 	wait: (milliseconds) =>
 		@_current_timeout = setTimeout ( =>
