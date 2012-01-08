@@ -1,24 +1,7 @@
 NodeState = require '../lib/nodestate'
  
 describe 'NodeState', ->
-	
-	it 'should create pre-, post-, and on- transitions for each state', ->
-		config =
-			states:
-				A: {}
-				B: {}
-				C: {}
-		fsm = new NodeState config
-
-		expect(config.transitions).toNotBe(null)
-
-		for state_name of config.states
-			for prefix in ['post', 'pre', 'on']
-				expect(config.transitions["#{prefix}#{state_name}"]).toNotBe(null)
-				expect(config.transitions["#{prefix}#{state_name}"] instanceof Function).toBeTruthy()
-
-		fsm.stop()
-
+	###
 	it 'should have a current state of A', ->
 		config =
 			states:
@@ -44,50 +27,45 @@ describe 'NodeState', ->
 
 	it 'should not call goto when autostart is false', ->
 		goto_called = false
-		config =
+		fsm = new NodeState
 			autostart: false
 			initial_state: 'A'
 			states:
-				A: {}
+				A:
+					Enter: (data) ->
+						goto_called = true
 				B: {}
 				C: {}
-			transitions:
-				onA: (data, callback) ->
-					goto_called = true
-					callback data
 
-		fsm = new NodeState config
 		expect(goto_called).toBeFalsy()
 		fsm.stop()
-
+	###
 	it 'should call goto when autostart is true', ->
 		goto_called = false
-		config =
+		fsm = new NodeState
 			autostart: true
 			initial_state: 'A'
 			states:
-				A: {}
+				A: 
+					Enter: (data) ->
+						console.log 'Entering state A'
+						goto_called = true
 				B: {}
-			transitions:
-				onA: (data, callback) ->
-					goto_called = true
-					callback data
-		fsm = new NodeState config
+		waits 50
 		expect(goto_called).toBeTruthy()
 		fsm.stop()
-	
+	###
 	it 'should transition from A to B after 50 milliseconds', ->
 		fsm = new NodeState
 			initial_state: 'A'
 			states:
 				A:
+					Enter: (data) ->
+						console.log 'waiting'
+						fsm.wait 50, data
 					WaitTimeout: (millis, data) ->
 						fsm.goto 'B'
 				B: {}
-			transitions:
-				onA: (data, callback) ->
-					fsm.wait 50
-					callback data
 
 		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
@@ -104,7 +82,8 @@ describe 'NodeState', ->
 				A:
 					Data: (data) ->
 						fsm.goto 'B', data
-				B: {}
+				B: 
+					Start: (data) ->
 
 		fsm.start()
 		fsm.raise 'Data', 1
@@ -133,4 +112,4 @@ describe 'NodeState', ->
 			expect(fsm.current_state_name).toEqual('B')
 			expect(fsm.current_data).toEqual(1)
 			fsm.stop()
-	
+	###
