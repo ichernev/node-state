@@ -25,7 +25,6 @@ class NodeState
 
 			clearTimeout @_current_timeout if @_current_timeout
 			for event_name, callback of @current_state
-				console.log "removing listener for event: #{event_name}"
 				@_notifier.removeListener event_name, callback
 
 			#enter the new state
@@ -34,25 +33,27 @@ class NodeState
 
 			#register events for active state
 			for event_name, callback of @current_state
-				console.log "registering listener for event: #{event_name}"
 				@_notifier.on event_name, callback
 
-			transitions = []
-			for transition in @config.transitions when ((transition[0] is previous_state_name or transition[0] is '*') and (transition[1] is @current_state_name or transition[1] is '*'))
-				transitions.push transition
-
-			if transitions.length
-				doTransition = (transition, data, remaining, isDone) =>
-					transition[2] data, remaining, (new_data, remaining) =>
-						if remaining.length
-							doTransition remaining[0], new_data, remaining, isDone
-						else
-							isDone(data)
-			
-				doTransition transitions[0], @current_data, transitions.slice(1), (data) =>
-					@_notifier.emit 'Enter', @current_data
-			else
+			callback = (data) => 
+				@current_data = data
 				@_notifier.emit 'Enter', @current_data
+			
+			transition = (data, cb) =>
+				cb data
+
+			transitions = @config.transitions
+			if transitions[previous_state_name] and transitions[previous_state_name][state_name]
+				transition = transitions[previous_state_name][state_name]
+			else if transitions['*'] and transitions['*'][state_name]
+				transition = transitions['*'][state_name]
+			else if transitions[previous_state_name] and transitions[previous_state_name]['*']
+				transition = transitions[previous_state_name]['*']
+			else if transitions['*'] and transitions['*']['*']
+				transition = transitions['*']['*']
+			
+			transition @current_data, callback
+
 		if @config.autostart
 			@goto @current_state_name
 	raise: (event_name, data) =>
