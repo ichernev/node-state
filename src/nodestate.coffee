@@ -11,55 +11,57 @@ class NodeState
 		@current_data = config.initial_data or {}
 		@_current_timeout = null
 
-		@config.transitions or= {}
+		@config.transitions or= []
 		@config.autostart or= false
 
-		#setup default transitions
+		#setup default events
 		for state_name, events of @config.states
-			for prefix in ['post', 'pre', 'on']
-				@config.transitions["#{prefix}#{state_name}"] or= (data, callback) ->
-					callback data
+			@config.states[state_name]['Enter'] or= (data) ->
+				@current_data = data
 
 		@goto = (state_name, data) =>
-			console.log "received #{data}"
 			@current_data = data or @current_data
-			console.log "current data #{@current_data}"
-			#executes before moving away from the current state
-			post_transition = @config.transitions["post#{@current_state_name}"]
+			previous_state_name = @current_state_name
 
-			post_transition @current_data, (data = @current_data) =>
+			clearTimeout @_current_timeout if @_current_timeout
+			for event_name, callback of @current_state
+				@_notifier.removeListener event_name, callback
+
+			#enter the new state
+			@current_state_name = state_name
+			@current_state = @config.states[@current_state_name]
+
+			#register events for active state
+			for event_name, callback of @current_state
+				@_notifier.on event_name, callback
+
+			callback = (data) => 
 				@current_data = data
-				clearTimeout @_current_timeout if @_current_timeout
-				for event_name, callback of @current_state
-					@_notifier.removeListener event_name, callback
+				@_notifier.emit 'Enter', @current_data
+			
+			transition = (data, cb) =>
+				cb data
 
-				#executes before entering the new state
-				pre_transition = @config.transitions["pre#{state_name}"]
+			transitions = @config.transitions
+			if transitions[previous_state_name] and transitions[previous_state_name][state_name]
+				transition = transitions[previous_state_name][state_name]
+			else if transitions['*'] and transitions['*'][state_name]
+				transition = transitions['*'][state_name]
+			else if transitions[previous_state_name] and transitions[previous_state_name]['*']
+				transition = transitions[previous_state_name]['*']
+			else if transitions['*'] and transitions['*']['*']
+				transition = transitions['*']['*']
+			
+			transition @current_data, callback
 
-				pre_transition @current_data, (data = @current_data) =>
-
-					#enter the new state
-					@current_data = data
-					@current_state_name = state_name
-					@current_state = @config.states[@current_state_name]
-
-					#register events for active state
-					for event_name, callback of @current_state
-						@_notifier.on event_name, callback
-
-					on_transition = @config.transitions["on#{state_name}"]
-					on_transition @current_data, (data = @current_data) =>
-						@current_data = data
-		
 		if @config.autostart
 			@goto @current_state_name
-
+	raise: (event_name, data) =>
+		@_notifier.emit event_name, data
 	wait: (milliseconds) =>
 		@_current_timeout = setTimeout ( =>
 			@_notifier.emit 'WaitTimeout', milliseconds, @current_data
 		), milliseconds
-	raise: (event_name, data) =>
-		@_notifier.emit event_name, data
 	start: (data) =>
 		@current_data or= data
 		@goto @current_state_name
