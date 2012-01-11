@@ -2,9 +2,8 @@ EventEmitter2 = require('eventemitter2').EventEmitter2
 
 class NodeState
 	constructor: (@config) ->
-		@_notifier = new EventEmitter2 {
-			wildcard: true
-		}
+		@_notifier = new EventEmitter2 { wildcard: true }
+		
 		@config.initial_state or= (state_name for state_name of @config.states)[0]
 		@current_state_name = @config.initial_state
 		@current_state = @config.states[@current_state_name]
