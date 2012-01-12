@@ -10,6 +10,11 @@ class NodeState
 			for event, fn of events
 				@states[state][event] = fn.bind @
 
+		#supply the proper context of 'this' to transitions
+		for from_state, to_states of @transitions
+			for to, fn of to_states
+				@transitions[from_state][to] = fn.bind @
+				
 		@config.initial_state or= (state_name for state_name of @states)[0]
 		@current_state_name = @config.initial_state
 		@current_state = @states[@current_state_name]

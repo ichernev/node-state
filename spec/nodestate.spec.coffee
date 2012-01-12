@@ -276,3 +276,22 @@ describe 'NodeState', ->
 		fsm.start()
 		expect(fsm.current_data).toEqual('A*')
 		fsm.stop()
+
+	it 'should transition to state C', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
+				B: {}
+				C: {}
+			transitions:
+				A:
+					B: (data, callback) ->
+						@goto 'C'
+
+		fsm = new TestState()
+
+		fsm.start()
+		expect(fsm.current_state_name).toEqual('C')
+		fsm.stop()
