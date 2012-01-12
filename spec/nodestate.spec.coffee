@@ -85,7 +85,49 @@ describe 'NodeState', ->
 		runs ->
 			expect(fsm.current_state_name).toEqual('B')
 			fsm.stop()
+
+	it 'should cancel the wait timer when transitioning to another state', ->
+		class TestState extends NodeState
+			states:
+				A:
+					Enter: (data) ->
+						@wait 50
+						@goto 'B'
+					WaitTimeout: (duration, data) ->
+						@goto 'C'
+				B: 
+					WaitTimeout: (duration, data) ->
+						@goto 'D'
+				C: {}
+				D: {}
+		
+		fsm = new TestState()
+		waits 60
+		fsm.start()
+		runs ->
+			expect(fsm.current_state_name).toEqual('B')		
+			fsm.stop()
 	
+	it 'should cancel the wait timer when unwait is called', ->
+		class TestState extends NodeState
+			states:
+				A:
+					Enter: (data) ->
+						@wait 50
+						@raise 'CancelTimer'
+					CancelTimer: (data) ->
+						@unwait()
+					WaitTimeout: (duration, data) ->
+						@goto 'B'
+				B: {}
+		
+		fsm = new TestState()
+		waits 60
+		fsm.start()
+		runs ->
+			expect(fsm.current_state_name).toEqual('A')		
+			fsm.stop()
+
 	it 'should transition from A to B after receiving data event', ->
 		class TestState extends NodeState
 			states:
