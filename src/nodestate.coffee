@@ -1,7 +1,6 @@
 EventEmitter2 = require('eventemitter2').EventEmitter2
 
 class NodeState
-	states: {}
 	constructor: (@config = {}) ->
 		@_notifier = new EventEmitter2 { wildcard: true }		 
 
@@ -64,6 +63,7 @@ class NodeState
 		
 		transition @current_data, callback
 
+	states: {}
 	transitions: {}
 	raise: (event_name, data) =>
 		@_notifier.emit event_name, data
