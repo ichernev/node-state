@@ -14,7 +14,7 @@ class NodeState
 		for from_state, to_states of @transitions
 			for to, fn of to_states
 				@transitions[from_state][to] = fn.bind @
-				
+
 		@config.initial_state or= (state_name for state_name of @states)[0]
 		@current_state_name = @config.initial_state
 		@current_state = @states[@current_state_name]
@@ -71,6 +71,8 @@ class NodeState
 		@_current_timeout = setTimeout ( =>
 			@_notifier.emit 'WaitTimeout', milliseconds, @current_data
 		), milliseconds
+	unwait: =>
+		if @_current_timeout then clearTimeout @_current_timeout
 	start: (data) =>
 		@current_data or= data
 		@goto @current_state_name
