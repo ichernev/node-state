@@ -31,7 +31,7 @@ task 'clean', 'Remove temporary files', ->
 	exec 'rm -rf lib reports logs/*.log', onError
 
 task 'build', 'Compile CoffeeScript into Javascript', ->
-	exec "coffee -c -o #{prodDir} #{srcDir}", (err, stdout, stderror) ->
+	exec "coffee -o #{prodDir} -c #{srcDir}", (err, stdout, stderror) ->
 		onError err
 
 runTests = (dir) ->
@@ -41,7 +41,34 @@ runTests = (dir) ->
 		console.error stderr if stderr
 		process.stdout.on 'drain', -> 
 			process.exit -1 if err
+
+runOnChange = (task_to_invoke) ->
+	exec "find #{srcDir} #{testDir}", (err, stdout, stderr) ->
+		files = stdout.split '\n'
+		files = files[0..files.length - 2]
+		files.forEach (file) ->
+			fs.stat file, (err, stats) ->
+				if stats.isFile()
+					fs.watch file, (event, filename) ->
+						invoke task_to_invoke
 	
 task 'test', 'Run all tests', ->
 	invoke 'build'
 	runTests "#{testDir}/"
+
+task 'test:unit', 'Run unit tests', ->
+	invoke 'build'
+	runTests "#{testDir}/unit/"
+
+task 'test:integration', 'Run unit tests', ->
+	invoke 'build'
+	runTests "#{testDir}/integration/"
+
+task '~test:unit', 'Rebuild and rerun tests on changes to src', ->
+	runOnChange 'test:unit'
+
+task '~test:integration', 'Rebuild and rerun tests on changes to src', ->
+	runOnChange 'test:integration'
+		
+task '~test', 'Rebuild and rerun tests on changes to src', ->
+	runOnChange 'test'	
