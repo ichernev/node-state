@@ -36,7 +36,8 @@ task 'build', 'Compile CoffeeScript into Javascript', ->
 
 runTests = (dir) ->
 	log "Running test suite for #{dir}...", green
-	exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err) ->
+	exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err, stdout, stderr) ->
+		console.log stdout
 		process.stdout.on 'drain', -> 
 			process.exit -1 if err
 	
