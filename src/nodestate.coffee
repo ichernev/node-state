@@ -1,20 +1,26 @@
 EventEmitter2 = require('eventemitter2').EventEmitter2
 
 class NodeState
-	constructor: (@config) ->
-		@_notifier = new EventEmitter2 { wildcard: true }
-		
-		@config.initial_state or= (state_name for state_name of @config.states)[0]
+	states: {}
+	constructor: (@config = {}) ->
+		@_notifier = new EventEmitter2 { wildcard: true }		 
+
+		#supply the proper context of 'this' to events
+		for state, events of @states
+			for event, fn of events
+				@states[state][event] = fn.bind @
+
+		@config.initial_state or= (state_name for state_name of @states)[0]
 		@current_state_name = @config.initial_state
-		@current_state = @config.states[@current_state_name]
-		@current_data = config.initial_data or {}
+		@current_state = @states[@current_state_name]
+		@current_data = @config.initial_data or {}
 		@_current_timeout = null
 
 		@config.autostart or= false
 
 		#setup default events
-		for state_name, events of @config.states
-			@config.states[state_name]['Enter'] or= (data) ->
+		for state_name, events of @states
+			@states[state_name]['Enter'] or= (data) ->
 				@current_data = data
 		if @config.autostart
 			@goto @current_state_name
@@ -29,7 +35,7 @@ class NodeState
 
 		#enter the new state
 		@current_state_name = state_name
-		@current_state = @config.states[@current_state_name]
+		@current_state = @states[@current_state_name]
 
 		#register events for active state
 		for event_name, callback of @current_state
@@ -53,7 +59,6 @@ class NodeState
 		
 		transition @current_data, callback
 
-	states: {}
 	transitions: {}
 	raise: (event_name, data) =>
 		@_notifier.emit event_name, data

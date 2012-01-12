@@ -9,11 +9,7 @@ describe 'NodeState', ->
 				B: {}
 				C: {}
 
-		fsm = new TestState
-			states:
-				A: {}
-				B: {}
-				C: {}
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
@@ -28,10 +24,6 @@ describe 'NodeState', ->
 
 		fsm = new TestState
 			intitial_state: 'B'
-			states:
-				A: {}
-				B: {}
-				C: {}
 
 		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
@@ -51,12 +43,6 @@ describe 'NodeState', ->
 		fsm = new TestState
 			autostart: false
 			initial_state: 'A'
-			states:
-				A:
-					Enter: (data) ->
-						goto_called = true
-				B: {}
-				C: {}
 
 		expect(goto_called).toBeFalsy()
 		fsm.stop()
@@ -74,11 +60,6 @@ describe 'NodeState', ->
 		fsm = new TestState
 			autostart: true
 			initial_state: 'A'
-			states:
-				A: 
-					Enter: (data) ->
-						goto_called = true
-				B: {}
 
 		waits 50
 		expect(goto_called).toBeTruthy()
@@ -96,13 +77,6 @@ describe 'NodeState', ->
 
 		fsm = new TestState
 			initial_state: 'A'
-			states:
-				A:
-					Enter: (data) ->
-						fsm.wait 50, data
-					WaitTimeout: (millis, data) ->
-						fsm.goto 'B'
-				B: {}
 
 		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
@@ -121,14 +95,8 @@ describe 'NodeState', ->
 				B: 
 					Start: (data) ->
 
-		fsm = new NodeState
+		fsm = new TestState
 			initial_state: 'A'
-			states:
-				A:
-					Data: (data) ->
-						fsm.goto 'B', data
-				B: 
-					Start: (data) ->
 
 		fsm.start()
 		fsm.raise 'Data', 1
@@ -150,11 +118,6 @@ describe 'NodeState', ->
 		fsm = new TestState
 			initial_state: 'A'
 			initial_data: 1
-			states:
-				A:
-					Data: (data) ->
-						fsm.goto 'B'
-				B: {}
 
 		fsm.start()
 		fsm.raise 'Data'
@@ -179,13 +142,7 @@ describe 'NodeState', ->
 					B: (data, callback) ->
 						callback 'AB'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('AB')
@@ -205,13 +162,7 @@ describe 'NodeState', ->
 					B: (data, callback) ->
 						callback '*B'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('*B')
@@ -231,14 +182,7 @@ describe 'NodeState', ->
 					'*': (data, callback) ->
 						callback 'A*'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
-
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('A*')
@@ -258,13 +202,7 @@ describe 'NodeState', ->
 					'*': (data, callback) ->
 						callback '**'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('**')
@@ -287,13 +225,7 @@ describe 'NodeState', ->
 					B: (data, callback) ->
 						callback '*B'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('AB')
@@ -316,18 +248,12 @@ describe 'NodeState', ->
 					'B': (data, callback) ->
 						callback '*B'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('*B')
 		fsm.stop()
-
+	
 	it 'should ensure the transition from A to * should take precedence over * to *', ->
 		class TestState extends NodeState
 			states:
@@ -345,13 +271,7 @@ describe 'NodeState', ->
 					'*': (data, callback) ->
 						callback '**'
 
-		fsm = new TestState
-			states:
-				A: 
-					Enter: (data) ->
-						fsm.goto 'B'
-				B: 
-					Enter: (data) ->
+		fsm = new TestState()
 
 		fsm.start()
 		expect(fsm.current_data).toEqual('A*')
