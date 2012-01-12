@@ -10,7 +10,6 @@ class NodeState
 		@current_data = config.initial_data or {}
 		@_current_timeout = null
 
-		@config.transitions or= []
 		@config.autostart or= false
 
 		#setup default events
@@ -43,15 +42,14 @@ class NodeState
 		transition = (data, cb) =>
 			cb data
 
-		transitions = @config.transitions
-		if transitions[previous_state_name] and transitions[previous_state_name][state_name]
-			transition = transitions[previous_state_name][state_name]
-		else if transitions['*'] and transitions['*'][state_name]
-			transition = transitions['*'][state_name]
-		else if transitions[previous_state_name] and transitions[previous_state_name]['*']
-			transition = transitions[previous_state_name]['*']
-		else if transitions['*'] and transitions['*']['*']
-			transition = transitions['*']['*']
+		if @transitions[previous_state_name] and @transitions[previous_state_name][state_name]
+			transition = @transitions[previous_state_name][state_name]
+		else if @transitions['*'] and @transitions['*'][state_name]
+			transition = @transitions['*'][state_name]
+		else if @transitions[previous_state_name] and @transitions[previous_state_name]['*']
+			transition = @transitions[previous_state_name]['*']
+		else if @transitions['*'] and @transitions['*']['*']
+			transition = @transitions['*']['*']
 		
 		transition @current_data, callback
 

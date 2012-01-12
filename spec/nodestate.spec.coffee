@@ -3,31 +3,52 @@ NodeState = require '../lib/nodestate'
 describe 'NodeState', ->
 	
 	it 'should have a current state of A', ->
-		config =
+		class TestState extends NodeState
 			states:
 				A: {}
 				B: {}
 				C: {}
 
-		fsm = new NodeState config
+		fsm = new TestState
+			states:
+				A: {}
+				B: {}
+				C: {}
+
+		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
 		fsm.stop()
 	
 	it 'should have a current state of B', ->
-		config =
+		class TestState extends NodeState
+			states:
+				A: {}
+				B: {}
+				C: {}
+
+		fsm = new TestState
 			intitial_state: 'B'
 			states:
 				A: {}
 				B: {}
 				C: {}
 
-		fsm = new NodeState config
+		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
 		fsm.stop()
 
 	it 'should not call goto when autostart is false', ->
 		goto_called = false
-		fsm = new NodeState
+
+		class TestState extends NodeState
+			states:
+				A:
+					Enter: (data) ->
+						goto_called = true
+				B: {}
+				C: {}
+
+		fsm = new TestState
 			autostart: false
 			initial_state: 'A'
 			states:
@@ -42,7 +63,15 @@ describe 'NodeState', ->
 	
 	it 'should call goto when autostart is true', ->
 		goto_called = false
-		fsm = new NodeState
+
+		class TestState extends NodeState
+			states:
+				A:
+					Enter: (data) ->
+						goto_called = true
+				B: {}
+
+		fsm = new TestState
 			autostart: true
 			initial_state: 'A'
 			states:
@@ -50,12 +79,22 @@ describe 'NodeState', ->
 					Enter: (data) ->
 						goto_called = true
 				B: {}
+
 		waits 50
 		expect(goto_called).toBeTruthy()
 		fsm.stop()
 	
 	it 'should transition from A to B after 50 milliseconds', ->
-		fsm = new NodeState
+		class TestState extends NodeState
+			states:
+				A:
+					Enter: (data) ->
+						@wait 50, data
+					WaitTimeout: (millis, data) ->
+						@goto 'B'
+				B: {}
+
+		fsm = new TestState
 			initial_state: 'A'
 			states:
 				A:
@@ -74,6 +113,14 @@ describe 'NodeState', ->
 			fsm.stop()
 	
 	it 'should transition from A to B after receiving data event', ->
+		class TestState extends NodeState
+			states:
+				A:
+					Data: (data) ->
+						@goto 'B', data
+				B: 
+					Start: (data) ->
+
 		fsm = new NodeState
 			initial_state: 'A'
 			states:
@@ -93,7 +140,14 @@ describe 'NodeState', ->
 			fsm.stop()
 			
 	it 'should retain current_data when goto is called with 1 argument', ->
-		fsm = new NodeState
+		class TestState extends NodeState
+			states:
+				A:
+					Data: (data) ->
+						@goto 'B'
+				B: {}
+
+		fsm = new TestState
 			initial_state: 'A'
 			initial_data: 1
 			states:
@@ -112,11 +166,11 @@ describe 'NodeState', ->
 			fsm.stop()
 	
 	it 'should call the transition from A to B', ->
-		fsm = new NodeState
+		class TestState extends NodeState
 			states:
 				A: 
 					Enter: (data) ->
-						fsm.goto 'B'
+						@goto 'B'
 				B: 
 					Enter: (data) ->
 
@@ -124,11 +178,8 @@ describe 'NodeState', ->
 				A:
 					B: (data, callback) ->
 						callback 'AB'
-		fsm.start()
-		expect(fsm.current_data).toEqual('AB')
-	
-	it 'should call the transition from * to B', ->
-		fsm = new NodeState
+
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
@@ -136,19 +187,42 @@ describe 'NodeState', ->
 				B: 
 					Enter: (data) ->
 
+		fsm.start()
+		expect(fsm.current_data).toEqual('AB')
+		fsm.stop()
+	
+	it 'should call the transition from * to B', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
+				B: 
+					Enter: (data) ->
+
 			transitions:
 				'*':
 					B: (data, callback) ->
 						callback '*B'
-		fsm.start()
-		expect(fsm.current_data).toEqual('*B')
-	
-	it 'should call the transition from A to *', ->
-		fsm = new NodeState
+
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
 						fsm.goto 'B'
+				B: 
+					Enter: (data) ->
+
+		fsm.start()
+		expect(fsm.current_data).toEqual('*B')
+		fsm.stop()
+	
+	it 'should call the transition from A to *', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
 				B: 
 					Enter: (data) ->
 
@@ -156,11 +230,8 @@ describe 'NodeState', ->
 				A:
 					'*': (data, callback) ->
 						callback 'A*'
-		fsm.start()
-		expect(fsm.current_data).toEqual('A*')
 
-	it 'should call the transition from * to *', ->
-		fsm = new NodeState
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
@@ -168,19 +239,43 @@ describe 'NodeState', ->
 				B: 
 					Enter: (data) ->
 
+
+		fsm.start()
+		expect(fsm.current_data).toEqual('A*')
+		fsm.stop()
+
+	it 'should call the transition from * to *', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
+				B: 
+					Enter: (data) ->
+
 			transitions:
 				'*':
 					'*': (data, callback) ->
 						callback '**'
-		fsm.start()
-		expect(fsm.current_data).toEqual('**')
 
-	it 'the transition from A to B should take precedence over * to B', ->
-		fsm = new NodeState
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
 						fsm.goto 'B'
+				B: 
+					Enter: (data) ->
+
+		fsm.start()
+		expect(fsm.current_data).toEqual('**')
+		fsm.stop()
+
+	it 'should ensure the transition from A to B should take precedence over * to B', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
 				B: 
 					Enter: (data) ->
 
@@ -191,15 +286,25 @@ describe 'NodeState', ->
 				'*':
 					B: (data, callback) ->
 						callback '*B'
-		fsm.start()
-		expect(fsm.current_data).toEqual('AB')
 
-	it 'the transition from * to B should take precedence over A to *', ->
-		fsm = new NodeState
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
 						fsm.goto 'B'
+				B: 
+					Enter: (data) ->
+
+		fsm.start()
+		expect(fsm.current_data).toEqual('AB')
+		fsm.stop()
+
+	it 'should ensure the transition from * to B should take precedence over A to *', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
 				B: 
 					Enter: (data) ->
 
@@ -210,15 +315,25 @@ describe 'NodeState', ->
 				'*':
 					'B': (data, callback) ->
 						callback '*B'
-		fsm.start()
-		expect(fsm.current_data).toEqual('*B')
 
-	it 'the transition from A to * should take precedence over * to *', ->
-		fsm = new NodeState
+		fsm = new TestState
 			states:
 				A: 
 					Enter: (data) ->
 						fsm.goto 'B'
+				B: 
+					Enter: (data) ->
+
+		fsm.start()
+		expect(fsm.current_data).toEqual('*B')
+		fsm.stop()
+
+	it 'should ensure the transition from A to * should take precedence over * to *', ->
+		class TestState extends NodeState
+			states:
+				A: 
+					Enter: (data) ->
+						@goto 'B'
 				B: 
 					Enter: (data) ->
 
@@ -229,5 +344,15 @@ describe 'NodeState', ->
 				'*':
 					'*': (data, callback) ->
 						callback '**'
+
+		fsm = new TestState
+			states:
+				A: 
+					Enter: (data) ->
+						fsm.goto 'B'
+				B: 
+					Enter: (data) ->
+
 		fsm.start()
 		expect(fsm.current_data).toEqual('A*')
+		fsm.stop()
