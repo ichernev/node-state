@@ -66,5 +66,8 @@ class MyStateMachine extends NodeState
 
 Above, we have defined transitions from A -> B, * -> A, * -> D, * -> *, and C -> *.  The * is a wildcard, it means "any state".  There are a few important things to note about transitions. First, they are called in between states, that is after all event handlers have been unregistered from the previous state, but before registering new handlers and entering the next state.  Second, only the single most applicable transition will be called, not all matching transitions.  Order of precedence, from most to least important, is as follows:
 
-
+1. Explicitly named 'from' and 'to' states, i.e. A -> B
+2. Wildcard 'from' state and explicitly named 'to' state, i.e. '*' -> B
+3. Explicitly named 'from' state and wildcard 'to' state, i.e. A -> '*'
+4. Wildcard 'from' and 'to' states, i.e. '*' -> '*'
 
