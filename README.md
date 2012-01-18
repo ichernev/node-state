@@ -71,3 +71,59 @@ Above, we have defined transitions from A -> B, * -> A, * -> D, * -> *, and C ->
 3. Explicitly named 'from' state and wildcard 'to' state, i.e. A -> '*'
 4. Wildcard 'from' and 'to' states, i.e. '*' -> '*'
 
+## configuring and running your state-machine
+The NodeState constructor supports an optional configuration object, which supports 3 properties.
+
++ autostart - Defaults to `false`.  This parameter determines whether the state machine should automatically activate and enter the initial state, or if it should wait for the start() method to be called.
++ initial_data - Defaults to an empty object ( {} ).  Use this to specify any data that might be needed by the initial state.
++ initial_state - The name of the first state that the machine should enter.  By default, this will be the name of the first state defined in the states list.
+
+```javascript
+fsm = new MyStateMachine
+	autostart: true
+	initial_data: 'I can be data of any type, but default to {}'
+	initial_state: 'B'
+```
+
+### available methods
+Note that any of the following methods can be called from outside of the state machine by replacing `@` (the CoffeeScript shortcut for `this`) with a reference to the state machine. example:
+
+```javascript
+class MyStateMachine extends NodeState
+	states:
+		A:
+			Enter: (data) ->
+				@goto 'B', { key: 'new data'}
+		B:
+			Enter: (data) ->
+				@goto 'C'
+
+fsm = new MyStateMachine
+fsm.start()
+fsm.wait 300
+fsm.stop()
+```
+
++ `@goto(state_name, [data])` - Described previously, this signals the state machine to begin transitioning from the current state to state_name.  @goto takes an optional data argument to send new data to the next state.
+
++ `@raise(event_name, [data])` - Described previously, this raises an event with the name specified by event_name, and optionally passes new data to that event handler.  Note that @raise does not cause a change in state, and only the active state's event handlers can respond to the event that has been raised.
+
++ `@wait(timeout_milliseconds, [data])` - Sleeps for the specified timeout_milliseconds before raising the WaitTimeout event.  WaitTimeout's event handler is defined slightly differently than most, as it has an additional parameter for the timeout value.
+
+```javascript
+	class MyStateMachine extends NodeState
+	states:
+		A:
+			Enter: (data) ->
+				@wait 300, { key: 'new data'}
+			WaitTimeout: (timeout, data) ->
+				console.log timeout
+		B:
+			Enter: (data) ->
+				#do something
+```
+
++ `@unwait` - Cancels the current wait operation.  Usually, the combination of @wait/@unwait is used if you are waiting a specified time period for other events to come in.  @unwait would be used once you've received an event of interest and no longer want to respond to the timer.
+
++ `@start` - Kicks off the transition to the initial state.
++ `@stop` - Unregisters all event handlers for the state machine, effectively turning it off.  In the future, pre- and post-stop event hooks may be added to allow for additional cleanup during shutdown.
