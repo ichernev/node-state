@@ -61,7 +61,8 @@ class NodeState
 		else if @transitions['*'] and @transitions['*']['*']
 			transition = @transitions['*']['*']
 		
-		transition @current_data, callback
+		process.nextTick =>
+			transition @current_data, callback
 
 	states: {}
 	transitions: {}

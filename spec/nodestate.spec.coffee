@@ -55,15 +55,15 @@ describe 'NodeState', ->
 				A:
 					Enter: (data) ->
 						goto_called = true
+						expect(goto_called).toBeTruthy()
+						asyncSpecDone()
+						fsm.stop()
 				B: {}
 
 		fsm = new TestState
 			autostart: true
 			initial_state: 'A'
-
-		waits 50
-		expect(goto_called).toBeTruthy()
-		fsm.stop()
+		asyncSpecWait()
 	
 	it 'should transition from A to B after 50 milliseconds', ->
 		class TestState extends NodeState
@@ -136,18 +136,19 @@ describe 'NodeState', ->
 						@goto 'B', data
 				B: 
 					Start: (data) ->
-
+						
 		fsm = new TestState
 			initial_state: 'A'
+			initial_data: 1
 
 		fsm.start()
-		fsm.raise 'Data', 1
-		#give ourselves some room
+		fsm.raise 'Data'
 		waits 60
 		runs ->
 			expect(fsm.current_state_name).toEqual('B')
 			expect(fsm.current_data).toEqual(1)
 			fsm.stop()
+			
 			
 	it 'should retain current_data when goto is called with 1 argument', ->
 		class TestState extends NodeState
@@ -155,7 +156,12 @@ describe 'NodeState', ->
 				A:
 					Data: (data) ->
 						@goto 'B'
-				B: {}
+				B:
+					Enter: (data) ->
+						expect(fsm.current_state_name).toEqual('B')
+						expect(fsm.current_data).toEqual(1)
+						fsm.stop()
+						asyncSpecDone()
 
 		fsm = new TestState
 			initial_state: 'A'
@@ -163,12 +169,8 @@ describe 'NodeState', ->
 
 		fsm.start()
 		fsm.raise 'Data'
-		#give ourselves some room
-		waits 60
-		runs ->
-			expect(fsm.current_state_name).toEqual('B')
-			expect(fsm.current_data).toEqual(1)
-			fsm.stop()
+		asyncSpecWait()
+			
 	
 	it 'should call the transition from A to B', ->
 		class TestState extends NodeState
@@ -178,6 +180,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
+						expect(fsm.current_data).toEqual('AB')
+						fsm.stop()
+						asyncSpecDone()
 
 			transitions:
 				A:
@@ -185,10 +190,8 @@ describe 'NodeState', ->
 						callback 'AB'
 
 		fsm = new TestState()
-
 		fsm.start()
-		expect(fsm.current_data).toEqual('AB')
-		fsm.stop()
+		asyncSpecWait()
 	
 	it 'should call the transition from * to B', ->
 		class TestState extends NodeState
@@ -198,6 +201,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
+						expect(fsm.current_data).toEqual('*B')
+						fsm.stop()
+						asyncSpecDone()
 
 			transitions:
 				'*':
@@ -205,10 +211,8 @@ describe 'NodeState', ->
 						callback '*B'
 
 		fsm = new TestState()
-
 		fsm.start()
-		expect(fsm.current_data).toEqual('*B')
-		fsm.stop()
+		asyncSpecWait()
 	
 	it 'should call the transition from A to *', ->
 		class TestState extends NodeState
@@ -218,7 +222,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
-
+						expect(fsm.current_data).toEqual('A*')
+						fsm.stop()
+						asyncSpecDone()
 			transitions:
 				A:
 					'*': (data, callback) ->
@@ -227,8 +233,6 @@ describe 'NodeState', ->
 		fsm = new TestState()
 
 		fsm.start()
-		expect(fsm.current_data).toEqual('A*')
-		fsm.stop()
 
 	it 'should call the transition from * to *', ->
 		class TestState extends NodeState
@@ -238,7 +242,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
-
+						expect(fsm.current_data).toEqual('**')
+						fsm.stop()
+						asyncSpecDone()
 			transitions:
 				'*':
 					'*': (data, callback) ->
@@ -247,8 +253,7 @@ describe 'NodeState', ->
 		fsm = new TestState()
 
 		fsm.start()
-		expect(fsm.current_data).toEqual('**')
-		fsm.stop()
+		asyncSpecWait()
 
 	it 'should ensure the transition from A to B should take precedence over * to B', ->
 		class TestState extends NodeState
@@ -258,6 +263,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
+						expect(fsm.current_data).toEqual('AB')
+						fsm.stop()
+						asyncSpecDone()
 
 			transitions:
 				A:
@@ -268,10 +276,8 @@ describe 'NodeState', ->
 						callback '*B'
 
 		fsm = new TestState()
-
 		fsm.start()
-		expect(fsm.current_data).toEqual('AB')
-		fsm.stop()
+		asyncSpecWait()
 
 	it 'should ensure the transition from * to B should take precedence over A to *', ->
 		class TestState extends NodeState
@@ -281,6 +287,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
+						expect(fsm.current_data).toEqual('*B')
+						fsm.stop()
+						asyncSpecDone()
 
 			transitions:
 				A:
@@ -293,8 +302,7 @@ describe 'NodeState', ->
 		fsm = new TestState()
 
 		fsm.start()
-		expect(fsm.current_data).toEqual('*B')
-		fsm.stop()
+		asyncSpecWait()
 	
 	it 'should ensure the transition from A to * should take precedence over * to *', ->
 		class TestState extends NodeState
@@ -304,6 +312,9 @@ describe 'NodeState', ->
 						@goto 'B'
 				B: 
 					Enter: (data) ->
+						expect(fsm.current_data).toEqual('A*')
+						fsm.stop()
+						asyncSpecDone()
 
 			transitions:
 				A:
@@ -316,8 +327,7 @@ describe 'NodeState', ->
 		fsm = new TestState()
 
 		fsm.start()
-		expect(fsm.current_data).toEqual('A*')
-		fsm.stop()
+		asyncSpecWait()
 
 	it 'should transition to state C', ->
 		class TestState extends NodeState
@@ -326,7 +336,11 @@ describe 'NodeState', ->
 					Enter: (data) ->
 						@goto 'B'
 				B: {}
-				C: {}
+				C:
+					Enter: (data) ->
+						expect(fsm.current_state_name).toEqual('C')
+						fsm.stop()
+						asyncSpecDone()
 			transitions:
 				A:
 					B: (data, callback) ->
@@ -335,5 +349,4 @@ describe 'NodeState', ->
 		fsm = new TestState()
 
 		fsm.start()
-		expect(fsm.current_state_name).toEqual('C')
-		fsm.stop()
+		asyncSpecWait()
