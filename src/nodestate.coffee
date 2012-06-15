@@ -2,7 +2,7 @@ EventEmitter2 = require('eventemitter2').EventEmitter2
 
 class NodeState
 	constructor: (@config = {}) ->
-		@_notifier = new EventEmitter2 { wildcard: true }		 
+		@_notifier = new EventEmitter2 { wildcard: true }
 
 		#supply the proper context of 'this' to events
 		for state, events of @states
@@ -45,10 +45,10 @@ class NodeState
 		for event_name, callback of @current_state
 			@_notifier.on event_name, callback
 
-		callback = (data) => 
+		callback = (data) =>
 			@current_data = data
 			@_notifier.emit 'Enter', @current_data
-			
+
 		transition = (data, cb) =>
 			cb data
 
@@ -60,7 +60,7 @@ class NodeState
 			transition = @transitions[previous_state_name]['*']
 		else if @transitions['*'] and @transitions['*']['*']
 			transition = @transitions['*']['*']
-		
+
 		process.nextTick =>
 			transition @current_data, callback
 
@@ -81,19 +81,3 @@ class NodeState
 		@_notifier.removeAllListeners()
 
 module.exports = NodeState
-										 
-	
-				
-							
-
-
-
-
-
-	
-				
-		
-			
-		
-	
-		
