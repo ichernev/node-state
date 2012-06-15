@@ -21,6 +21,7 @@ class NodeState
 		@_current_timeout = null
 
 		@config.autostart or= false
+		@config.sync_goto or= false
 
 		#setup default events
 		for state_name, events of @states
@@ -61,8 +62,11 @@ class NodeState
 		else if @transitions['*'] and @transitions['*']['*']
 			transition = @transitions['*']['*']
 
-		process.nextTick =>
+		if @config.sync_goto
 			transition @current_data, callback
+		else
+			process.nextTick =>
+				transition @current_data, callback
 
 	states: {}
 	transitions: {}
