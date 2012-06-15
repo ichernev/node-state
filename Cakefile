@@ -11,10 +11,10 @@ prodDir = "lib"
 testDir = "spec"
 
 # ANSI Terminal Colors.
-bold  = "\033[0;1m"
-red   = "\033[0;31m"
-green = "\033[0;32m"
-reset = "\033[0m"
+bold  = "\x1B[0;1m"
+red   = "\x1B[0;31m"
+green = "\x1B[0;32m"
+reset = "\x1B[0m"
 
 # Log a message with a color.
 log = (message, color, explanation) ->
