@@ -15,7 +15,7 @@ Node-State has three main concepts: States, Events, and Transitions.  At any one
 State machines use CoffeeScript's class and inheritance system, and should inherit from NodeState.  While it is certainly possible to implement this inheritance using plain javascript, that is beyond the scope of this documentation, and is not recommended.
 
 ### adding states and events
-```javascript
+```coffeescript
 class MyStateMachine extends NodeState
 	states:
 		A:
@@ -31,7 +31,7 @@ class MyStateMachine extends NodeState
 In the example above, we've created a new state machine with 2 states: A and B.  The keys under each state are the names of events to which the state will respond.  All states by default will listen for an Enter event, which is called automatically upon entering the new state.  In the Enter event of state A, we see the @goto method.  @goto will unregister event listeners for state A, and enter state B.  The second argument to @goto is data to be passed to the next state.  Upon entering state B, we see the @raise method.  @raise raises an event which will be responded to by the current state, if an appropriate event has been registered.  Again, the second argument may be used to pass new data to the next event handler.  In both @raise and @goto, the second argument is optional.  Omitting it will pass along the data received by the current event handler.
 
 ### adding transitions
-```javascript
+```coffeescript
 class MyStateMachine extends NodeState
 	states:
 		A:
@@ -45,7 +45,7 @@ class MyStateMachine extends NodeState
 				@goto 'D'
 		D:
 			Enter: (data) ->
-				
+
 	transitions:
 		A:
 
@@ -78,7 +78,7 @@ The NodeState constructor supports an optional configuration object, which suppo
 + initial_data - Defaults to an empty object ( {} ).  Use this to specify any data that might be needed by the initial state.
 + initial_state - The name of the first state that the machine should enter.  By default, this will be the name of the first state defined in the states list.
 
-```javascript
+```coffeescript
 fsm = new MyStateMachine
 	autostart: true
 	initial_data: 'I can be data of any type, but default to {}'
@@ -88,7 +88,7 @@ fsm = new MyStateMachine
 ### available methods
 Note that any of the following methods can be called from outside of the state machine by replacing `@` (the CoffeeScript shortcut for `this`) with a reference to the state machine. example:
 
-```javascript
+```coffeescript
 class MyStateMachine extends NodeState
 	states:
 		A:
@@ -110,8 +110,8 @@ fsm.stop()
 
 + `@wait(timeout_milliseconds, [data])` - Sleeps for the specified timeout_milliseconds before raising the WaitTimeout event.  WaitTimeout's event handler is defined slightly differently than most, as it has an additional parameter for the timeout value.
 
-```javascript
-	class MyStateMachine extends NodeState
+```coffeescript
+class MyStateMachine extends NodeState
 	states:
 		A:
 			Enter: (data) ->
@@ -123,7 +123,7 @@ fsm.stop()
 				#do something
 ```
 
-+ `@unwait` - Cancels the current wait operation.  Usually, the combination of @wait/@unwait is used if you are waiting a specified time period for other events to come in.  @unwait would be used once you've received an event of interest and no longer want to respond to the timer.
++ `@unwait` - Cancels the current wait operation.  Usually, the combination of @wait/@unwait is used if you are waiting a specified time period for other events to come in.  `@unwait` would be used once you've received an event of interest and no longer want to respond to the timer.
 
 + `@start` - Kicks off the transition to the initial state.
 + `@stop` - Unregisters all event handlers for the state machine, effectively turning it off.  In the future, pre- and post-stop event hooks may be added to allow for additional cleanup during shutdown.
