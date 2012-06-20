@@ -22,10 +22,6 @@ class NodeState
 
 		@config.autostart or= false
 
-		#setup default events
-		for state_name, events of @states
-			@states[state_name]['Enter'] or= (data) ->
-				@current_data = data
 		if @config.autostart
 			@goto @current_state_name
 
