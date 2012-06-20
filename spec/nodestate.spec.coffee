@@ -1,7 +1,7 @@
 NodeState = require '../lib/nodestate'
- 
+
 describe 'NodeState', ->
-	
+
 	it 'should have a current state of A', ->
 		class TestState extends NodeState
 			states:
@@ -14,7 +14,7 @@ describe 'NodeState', ->
 		fsm.start()
 		expect(fsm.current_state_name).toEqual('A')
 		fsm.stop()
-	
+
 	it 'should have a current state of B', ->
 		class TestState extends NodeState
 			states:
@@ -46,7 +46,7 @@ describe 'NodeState', ->
 
 		expect(goto_called).toBeFalsy()
 		fsm.stop()
-	
+
 	it 'should call goto when autostart is true', ->
 		goto_called = false
 
@@ -64,7 +64,7 @@ describe 'NodeState', ->
 			autostart: true
 			initial_state: 'A'
 		asyncSpecWait()
-	
+
 	it 'should transition from A to B after 50 milliseconds', ->
 		class TestState extends NodeState
 			states:
@@ -95,19 +95,19 @@ describe 'NodeState', ->
 						@goto 'B'
 					WaitTimeout: (duration, data) ->
 						@goto 'C'
-				B: 
+				B:
 					WaitTimeout: (duration, data) ->
 						@goto 'D'
 				C: {}
 				D: {}
-		
+
 		fsm = new TestState()
 		waits 60
 		fsm.start()
 		runs ->
-			expect(fsm.current_state_name).toEqual('B')		
+			expect(fsm.current_state_name).toEqual('B')
 			fsm.stop()
-	
+
 	it 'should cancel the wait timer when unwait is called', ->
 		class TestState extends NodeState
 			states:
@@ -120,12 +120,12 @@ describe 'NodeState', ->
 					WaitTimeout: (duration, data) ->
 						@goto 'B'
 				B: {}
-		
+
 		fsm = new TestState()
 		waits 60
 		fsm.start()
 		runs ->
-			expect(fsm.current_state_name).toEqual('A')		
+			expect(fsm.current_state_name).toEqual('A')
 			fsm.stop()
 
 	it 'should transition from A to B after receiving data event', ->
@@ -134,9 +134,9 @@ describe 'NodeState', ->
 				A:
 					Data: (data) ->
 						@goto 'B', data
-				B: 
+				B:
 					Start: (data) ->
-						
+
 		fsm = new TestState
 			initial_state: 'A'
 			initial_data: 1
@@ -148,8 +148,8 @@ describe 'NodeState', ->
 			expect(fsm.current_state_name).toEqual('B')
 			expect(fsm.current_data).toEqual(1)
 			fsm.stop()
-			
-			
+
+
 	it 'should retain current_data when goto is called with 1 argument', ->
 		class TestState extends NodeState
 			states:
@@ -170,15 +170,15 @@ describe 'NodeState', ->
 		fsm.start()
 		fsm.raise 'Data'
 		asyncSpecWait()
-			
-	
+
+
 	it 'should call the transition from A to B', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('AB')
 						fsm.stop()
@@ -192,14 +192,14 @@ describe 'NodeState', ->
 		fsm = new TestState()
 		fsm.start()
 		asyncSpecWait()
-	
+
 	it 'should call the transition from * to B', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('*B')
 						fsm.stop()
@@ -213,14 +213,14 @@ describe 'NodeState', ->
 		fsm = new TestState()
 		fsm.start()
 		asyncSpecWait()
-	
+
 	it 'should call the transition from A to *', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('A*')
 						fsm.stop()
@@ -237,10 +237,10 @@ describe 'NodeState', ->
 	it 'should call the transition from * to *', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('**')
 						fsm.stop()
@@ -258,10 +258,10 @@ describe 'NodeState', ->
 	it 'should ensure the transition from A to B should take precedence over * to B', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('AB')
 						fsm.stop()
@@ -282,10 +282,10 @@ describe 'NodeState', ->
 	it 'should ensure the transition from * to B should take precedence over A to *', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('*B')
 						fsm.stop()
@@ -303,14 +303,14 @@ describe 'NodeState', ->
 
 		fsm.start()
 		asyncSpecWait()
-	
+
 	it 'should ensure the transition from A to * should take precedence over * to *', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
-				B: 
+				B:
 					Enter: (data) ->
 						expect(fsm.current_data).toEqual('A*')
 						fsm.stop()
@@ -332,7 +332,7 @@ describe 'NodeState', ->
 	it 'should transition to state C', ->
 		class TestState extends NodeState
 			states:
-				A: 
+				A:
 					Enter: (data) ->
 						@goto 'B'
 				B: {}
@@ -350,3 +350,67 @@ describe 'NodeState', ->
 
 		fsm.start()
 		asyncSpecWait()
+
+	describe 'handling of 2 state machines simultaneously', ->
+		it 'preserves local variables in state events', ->
+			lastLocal = null
+			class TestState extends NodeState
+				constructor: (@local) ->
+					super autostart: yes
+
+				states:
+					A:
+						StoreLastLocal: ->
+							lastLocal = @local
+
+			ts1 = new TestState(1)
+			ts2 = new TestState(2)
+
+			setTimeout(
+				->
+					ts1.raise 'StoreLastLocal'
+					expect(lastLocal).toEqual 1
+
+					ts2.raise 'StoreLastLocal'
+					expect(lastLocal).toEqual 2
+
+					asyncSpecDone()
+				200
+			)
+			asyncSpecWait()
+
+		it 'preserves local variables in transitions', ->
+			lastLocal = null
+			class TestState extends NodeState
+				constructor: (@local) ->
+					super autostart: yes
+
+				states:
+					A: {}
+					B: {}
+
+				transitions:
+					A:
+						B: ->
+							lastLocal = @local
+
+
+			ts1 = new TestState(1)
+			ts2 = new TestState(2)
+
+			seriesWithTimeout = (tasks) ->
+				run = (idx) ->
+					return if idx is tasks.length
+					tasks[idx]()
+					setTimeout (-> run(idx+1)), 200
+				run(0)
+
+			seriesWithTimeout [
+				-> ts1.goto 'B'
+				-> expect(lastLocal).toEqual 1
+				-> ts2.goto 'B'
+				-> expect(lastLocal).toEqual 2
+				-> asyncSpecDone()
+			]
+
+			asyncSpecWait()
