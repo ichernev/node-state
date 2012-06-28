@@ -5,14 +5,20 @@ class NodeState
 		@_notifier = new EventEmitter2 { wildcard: true }
 
 		#supply the proper context of 'this' to events
+		states = {}
 		for state, events of @states
+			states[state] = {}
 			for event, fn of events
-				@states[state][event] = fn.bind @
+				states[state][event] = fn.bind @
+		@states = states
 
 		#supply the proper context of 'this' to transitions
+		transitions = {}
 		for from_state, to_states of @transitions
+			transitions[from_state] = {}
 			for to, fn of to_states
-				@transitions[from_state][to] = fn.bind @
+				transitions[from_state][to] = fn.bind @
+		@transitions = transitions
 
 		@config.initial_state or= (state_name for state_name of @states)[0]
 		@current_state_name = @config.initial_state
@@ -21,8 +27,11 @@ class NodeState
 		@_current_timeout = null
 
 		@config.autostart or= false
-		@config.sync_goto or= false
 
+		#setup default events
+		for state_name, events of @states
+			@states[state_name]['Enter'] or= (data) ->
+				@current_data = data
 		if @config.autostart
 			@goto @current_state_name
 
@@ -58,11 +67,8 @@ class NodeState
 		else if @transitions['*'] and @transitions['*']['*']
 			transition = @transitions['*']['*']
 
-		if @config.sync_goto
+		process.nextTick =>
 			transition @current_data, callback
-		else
-			process.nextTick =>
-				transition @current_data, callback
 
 	states: {}
 	transitions: {}
