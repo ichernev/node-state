@@ -11,10 +11,10 @@ prodDir = "lib"
 testDir = "spec"
 
 # ANSI Terminal Colors.
-bold  = "\033[0;1m"
-red   = "\033[0;31m"
-green = "\033[0;32m"
-reset = "\033[0m"
+bold  = "\x1B[0;1m"
+red   = "\x1B[0;31m"
+green = "\x1B[0;32m"
+reset = "\x1B[0m"
 
 # Log a message with a color.
 log = (message, color, explanation) ->
@@ -26,7 +26,7 @@ onError = (err) ->
     process.stdout.write "#{red}#{err.stack}#{reset}\n"
     process.exit -1
 
-task 'clean', 'Remove temporary files', -> 
+task 'clean', 'Remove temporary files', ->
 	log 'Executing clean', green
 	exec 'rm -rf lib reports logs/*.log', onError
 
@@ -39,7 +39,7 @@ runTests = (dir) ->
 	exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err, stdout, stderr) ->
 		console.log stdout if stdout
 		console.error stderr if stderr
-		process.stdout.on 'drain', -> 
+		process.stdout.on 'drain', ->
 			process.exit -1 if err
 
 runOnChange = (task_to_invoke) ->
@@ -51,7 +51,7 @@ runOnChange = (task_to_invoke) ->
 				if stats.isFile()
 					fs.watch file, (event, filename) ->
 						invoke task_to_invoke
-	
+
 task 'test', 'Run all tests', ->
 	invoke 'build'
 	runTests "#{testDir}/"
@@ -69,6 +69,6 @@ task '~test:unit', 'Rebuild and rerun tests on changes to src', ->
 
 task '~test:integration', 'Rebuild and rerun tests on changes to src', ->
 	runOnChange 'test:integration'
-		
+
 task '~test', 'Rebuild and rerun tests on changes to src', ->
-	runOnChange 'test'	
+	runOnChange 'test'
