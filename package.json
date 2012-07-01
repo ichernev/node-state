@@ -1,13 +1,16 @@
 {
-  "author": "Nick Fisher",
+  "author": "Iskren Chernev <iskren.chernev@gmail.com>",
+  "contributors": [
+    "Nick Fisher"
+  ],
   "name": "node-state",
   "description": "A finite state machine (FSM) implementation for node.js",
   "version": "1.2.1",
   "main": "index",
-  "homepage": "https://github.com/nrf110/node-state",
+  "homepage": "https://github.com/ichernev/node-state",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nrf110/node-state.git"
+    "url": "git://github.com/ichernev/node-state.git"
   },
   "engines": {
     "node": "~0.6.6"
