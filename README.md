@@ -128,5 +128,8 @@ class MyStateMachine extends NodeState
 + `@start` - Kicks off the transition to the initial state.
 + `@stop` - Unregisters all event handlers for the state machine, effectively turning it off.  In the future, pre- and post-stop event hooks may be added to allow for additional cleanup during shutdown.
 
-### Credits
+## History
++ v1.3.0 - bugfixes and `sync_goto` option to constructor
+
+## Credits
 + originally published by [Nick Fisher]("https://github.com/nrf110")
