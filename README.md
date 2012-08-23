@@ -66,17 +66,18 @@ class MyStateMachine extends NodeState
 
 Above, we have defined transitions from A -> B, * -> A, * -> D, * -> *, and C -> *.  The * is a wildcard, it means "any state".  There are a few important things to note about transitions. First, they are called in between states, that is after all event handlers have been unregistered from the previous state, but before registering new handlers and entering the next state.  Second, only the single most applicable transition will be called, not all matching transitions.  Order of precedence, from most to least important, is as follows:
 
-1. Explicitly named 'from' and 'to' states, i.e. A -> B
-2. Wildcard 'from' state and explicitly named 'to' state, i.e. '*' -> B
-3. Explicitly named 'from' state and wildcard 'to' state, i.e. A -> '*'
-4. Wildcard 'from' and 'to' states, i.e. '*' -> '*'
+1. Explicitly named 'from' and 'to' states, i.e. `A -> B`
+2. Wildcard 'from' state and explicitly named 'to' state, i.e. `'*' -> B`
+3. Explicitly named 'from' state and wildcard 'to' state, i.e. `A -> '*'`
+4. Wildcard 'from' and 'to' states, i.e. `'*' -> '*'`
 
 ## configuring and running your state-machine
 The NodeState constructor supports an optional configuration object, which supports 3 properties.
 
-+ autostart - Defaults to `false`.  This parameter determines whether the state machine should automatically activate and enter the initial state, or if it should wait for the start() method to be called.
-+ initial_data - Defaults to an empty object ( {} ).  Use this to specify any data that might be needed by the initial state.
-+ initial_state - The name of the first state that the machine should enter.  By default, this will be the name of the first state defined in the states list.
++ `autostart` - Defaults to `false`.  This parameter determines whether the state machine should automatically activate and enter the initial state, or if it should wait for the start() method to be called.
++ `initial_data` - Defaults to an empty object ( {} ).  Use this to specify any data that might be needed by the initial state.
++ `initial_state` - The name of the first state that the machine should enter.  By default, this will be the name of the first state defined in the states list.
++ `sync_goto` - when you issue `goto` the new state's Enter function is called syncrhonously, in the current run-loop iteration
 
 ```coffeescript
 fsm = new MyStateMachine
