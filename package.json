@@ -13,12 +13,12 @@
     "url": "git://github.com/ichernev/node-state.git"
   },
   "engines": {
-    "node": "~0.6.6"
+    "node": ">=0.6.6"
   },
   "dependencies": {
-    "eventemitter2": ">=0.4.1"
+    "eventemitter2": "0.4.8"
   },
   "devDependencies": {
-    "jasmine-node": ">=1.0.13"
+    "jasmine-node": "1.0.26"
   }
 }
