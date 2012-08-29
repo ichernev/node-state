@@ -27,48 +27,48 @@ onError = (err) ->
     process.exit -1
 
 task 'clean', 'Remove temporary files', ->
-	log 'Executing clean', green
-	exec 'rm -rf lib reports logs/*.log', onError
+  log 'Executing clean', green
+  exec 'rm -rf lib reports logs/*.log', onError
 
 task 'build', 'Compile CoffeeScript into Javascript', ->
-	exec "coffee -o #{prodDir} -c #{srcDir}", (err, stdout, stderror) ->
-		onError err
+  exec "coffee -o #{prodDir} -c #{srcDir}", (err, stdout, stderror) ->
+    onError err
 
 runTests = (dir) ->
-	log "Running test suite for #{dir}...", green
-	exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err, stdout, stderr) ->
-		console.log stdout if stdout
-		console.error stderr if stderr
-		process.stdout.on 'drain', ->
-			process.exit -1 if err
+  log "Running test suite for #{dir}...", green
+  exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err, stdout, stderr) ->
+    console.log stdout if stdout
+    console.error stderr if stderr
+    process.stdout.on 'drain', ->
+      process.exit -1 if err
 
 runOnChange = (task_to_invoke) ->
-	exec "find #{srcDir} #{testDir}", (err, stdout, stderr) ->
-		files = stdout.split '\n'
-		files = files[0..files.length - 2]
-		files.forEach (file) ->
-			fs.stat file, (err, stats) ->
-				if stats.isFile()
-					fs.watch file, (event, filename) ->
-						invoke task_to_invoke
+  exec "find #{srcDir} #{testDir}", (err, stdout, stderr) ->
+    files = stdout.split '\n'
+    files = files[0..files.length - 2]
+    files.forEach (file) ->
+      fs.stat file, (err, stats) ->
+        if stats.isFile()
+          fs.watch file, (event, filename) ->
+            invoke task_to_invoke
 
 task 'test', 'Run all tests', ->
-	invoke 'build'
-	runTests "#{testDir}/"
+  invoke 'build'
+  runTests "#{testDir}/"
 
 task 'test:unit', 'Run unit tests', ->
-	invoke 'build'
-	runTests "#{testDir}/unit/"
+  invoke 'build'
+  runTests "#{testDir}/unit/"
 
 task 'test:integration', 'Run unit tests', ->
-	invoke 'build'
-	runTests "#{testDir}/integration/"
+  invoke 'build'
+  runTests "#{testDir}/integration/"
 
 task '~test:unit', 'Rebuild and rerun tests on changes to src', ->
-	runOnChange 'test:unit'
+  runOnChange 'test:unit'
 
 task '~test:integration', 'Rebuild and rerun tests on changes to src', ->
-	runOnChange 'test:integration'
+  runOnChange 'test:integration'
 
 task '~test', 'Rebuild and rerun tests on changes to src', ->
-	runOnChange 'test'
+  runOnChange 'test'
