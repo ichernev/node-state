@@ -37,7 +37,7 @@ class NodeState
     if @config.autostart
       @goto @current_state_name
 
-  goto: (state_name, data) =>
+  goto: (state_name, data) ->
     @current_data = data ? @current_data
     previous_state_name = @current_state_name
 
@@ -73,23 +73,23 @@ class NodeState
       process.nextTick =>
         transition @current_data, callback
 
-  raise: (event_name, data) =>
+  raise: (event_name, data) ->
     @_notifier.emit event_name, data
 
-  wait: (milliseconds) =>
+  wait: (milliseconds) ->
     @_current_timeout = setTimeout(
       => @_notifier.emit 'WaitTimeout', milliseconds, @current_data
       milliseconds
     )
 
-  unwait: =>
+  unwait: ->
     clearTimeout @_current_timeout if @_current_timeout
 
-  start: (data) =>
+  start: (data) ->
     @current_data = data if data?
     @goto @current_state_name
 
-  stop: =>
+  stop: ->
     @_notifier.removeAllListeners()
 
   states: {}
