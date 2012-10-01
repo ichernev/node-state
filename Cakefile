@@ -35,8 +35,10 @@ task 'build', 'Compile CoffeeScript into Javascript', ->
     onError err
 
 runTests = (dir) ->
-  log "Running test suite for #{dir}...", green
-  exec "jasmine-node --coffee --junitreport --verbose #{dir}", (err, stdout, stderr) ->
+  exec "node_modules/.bin/mocha
+          --compilers coffee:coffee-script
+          --reporter spec
+          --colors", (err, stdout, stderr) ->
     console.log stdout if stdout
     console.error stderr if stderr
     process.stdout.on 'drain', ->
