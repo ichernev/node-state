@@ -276,3 +276,148 @@ describe 'NodeState', ->
 
       new TestState(1)
       new TestState(2)
+
+  describe 'start/stop', ->
+    it 'does not call event callbacks after stop', (done) ->
+      class TestState extends NodeState
+        states:
+          A:
+            Enter: ->
+              @stop()
+              @raise 'Foo'
+              done()
+            Foo: ->
+              'event called'.should.equal null
+              done()
+
+      new TestState autostart: yes
+
+    it 'does not call wait callbacks after stop', (done) ->
+      class TestState extends NodeState
+        states:
+          A:
+            Enter: ->
+              @wait 50
+              @stop()
+              done()
+            WaitTimeout: ->
+              'wait timeout called'.should.equal null
+              done()
+
+      new TestState autostart: yes
+
+    it 'enters the last state on start', (done) ->
+      class TestState extends NodeState
+        constructor: ->
+          @enteredB = no
+          super
+
+        states:
+          A:
+            Enter: ->
+              if @enteredB
+                'entered state A after B'.should.equal null
+                done()
+              @goto 'B'
+          B:
+            Enter: ->
+              if @enteredB
+                done()
+              else
+                @enteredB = yes
+                @stop()
+                process.nextTick => @start()
+
+      new TestState autostart: yes
+
+    it 'passes data provided to start to last state', (done) ->
+      class TestState extends NodeState
+        constructor: ->
+          @enteredB = no
+          super
+
+        states:
+          A:
+            Enter: ->
+              if @enteredB
+                'entered state A after B'.should.equal null
+                done()
+              @goto 'B'
+          B:
+            Enter: (data) ->
+              if @enteredB
+                data.should.equal 'data-goes-here'
+                done()
+              else
+                @enteredB = yes
+                @stop()
+                process.nextTick => @start 'data-goes-here'
+
+      new TestState autostart: yes
+
+  describe 'enable/disable', ->
+    it 'does not call event callbacks after disable', (done) ->
+      class TestState extends NodeState
+        states:
+          A:
+            Enter: ->
+              @disable()
+              @raise 'Foo'
+              done()
+            Foo: ->
+              'event called'.should.equal null
+              done()
+
+      new TestState autostart: yes
+
+    it 'makes goto no-op after disable', (done) ->
+      class TestState extends NodeState
+        states:
+          A: Enter: ->
+            @disable()
+            @goto 'B'
+            done()
+          B: Enter: ->
+            'goto B executed'.should.equal null
+            done()
+
+      new TestState autostart: yes
+
+    it 'does not call callbacks wrapped in wrapCb after disable', (done) ->
+      class TestState extends NodeState
+        states:
+          A: Enter: ->
+            setTimeout(
+              @wrapCb ->
+                'wrapped callback called'.should.equal null
+                done()
+              10
+            )
+            @disable()
+            done()
+
+      new TestState autostart: yes
+
+    it 'enables goto after enable', (done) ->
+      class TestState extends NodeState
+        states:
+          A: Enter: ->
+            @disable()
+            @enable()
+            @goto 'B'
+          B: Enter: ->
+            done()
+
+      new TestState autostart: yes
+
+    it 'goes to specified state after enable(stateName)', (done) ->
+      class TestState extends NodeState
+        states:
+          A: Enter: ->
+            @disable()
+            @enable 'B', 'b-data'
+          B: Enter: (data) ->
+            data.should.equal 'b-data'
+            done()
+
+      new TestState autostart: yes

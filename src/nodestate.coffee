@@ -3,6 +3,7 @@ EventEmitter2 = require('eventemitter2').EventEmitter2
 class NodeState
   constructor: (@config = {}) ->
     @_notifier = new EventEmitter2(wildcard: true)
+    @disabled = false
 
     # supply the proper context of 'this' to events
     states = {}
@@ -38,6 +39,8 @@ class NodeState
       @goto @current_state_name
 
   goto: (state_name, data) ->
+    return if @disabled
+
     @current_data = data ? @current_data
     previous_state_name = @current_state_name
 
@@ -91,6 +94,22 @@ class NodeState
 
   stop: ->
     @_notifier.removeAllListeners()
+    @unwait
+
+  disable: ->
+    return if @disabled
+    @stop()
+    @disabled = true
+
+  enable: (state, data) ->
+    return unless @disabled
+    @disabled = false
+    @goto state, data if state?
+
+  wrapCb: (fn) ->
+    (args...) =>
+      return if @disabled
+      fn args...
 
   states: {}
   transitions: {}
