@@ -6,40 +6,32 @@ describe 'NodeState', ->
     it 'uses first given state as initial state', (done) ->
       class TestState extends NodeState
         states:
-          A: Enter: done
-          B: Enter: ->
-            'in B'.should.not.exist
-            done()
+          A: Enter: -> done()
+          B: Enter: -> done 'in B'
 
       new TestState().start()
 
     it 'honors initial_state over first given state', (done) ->
       class TestState extends NodeState
         states:
-          A:
-            Enter: ->
-              'in A'.should.not.exist
-              done()
-          B: Enter: done
+          A: Enter: -> done 'in A'
+          B: Enter: -> done()
 
       new TestState(initial_state: 'B').start()
 
   describe 'autostart', ->
     it 'does not enter initial state if autostart is false', (done) ->
-      goto_called = false
-
       class TestState extends NodeState
         states:
-          A: Enter: done
+          A: Enter: -> done 'in A'
 
       new TestState autostart: no
-      # raise 'done() called multiple times' if A:Enter is called
       done()
 
     it 'does enter initial state if autostart is true', (done) ->
       class TestState extends NodeState
         states:
-          A: Enter: done
+          A: Enter: -> done()
 
       new TestState autostart: yes
 
@@ -48,7 +40,7 @@ describe 'NodeState', ->
       class TestState extends NodeState
         states:
           A:
-            Enter: -> @wait 50
+            Enter: -> @wait 10
             WaitTimeout: -> done()
 
       new TestState autostart: yes
@@ -58,18 +50,16 @@ describe 'NodeState', ->
         states:
           A:
             Enter: (data) ->
-              @wait 50
+              @wait 10
               @goto 'B'
-            WaitTimeout: (duration, data) ->
-              'wait timeout in A'.should.not.exist
-              done()
+            WaitTimeout: ->
+              done 'wait timeout in A'
           B:
             Enter: ->
-              # 'done() called multiple called' is raised in wait timeout
-              done()
-            WaitTimeout: (duration, data) ->
-              'wait timeout in B'.should.not.exist
-              done()
+              # wait for the timeout in case it triggers
+              setTimeout done, 10
+            WaitTimeout: ->
+              done 'wait timeout in B'
 
       new TestState autostart: yes
 
@@ -78,15 +68,12 @@ describe 'NodeState', ->
         states:
           A:
             Enter: (data) ->
-              @wait 50
-              @raise 'CancelTimer'
-            CancelTimer: (data) ->
+              @wait 10
               @unwait()
-              # 'done() called multiple times' is raised in wait timeout
-              done()
+              # wait for the timeout in case it triggers
+              setTimeout done, 10
             WaitTimeout: (duration, data) ->
-              'wait timeout in A'.should.not.exist
-              done()
+              done 'wait timeout triggered'
 
       new TestState autostart: yes
 
@@ -95,31 +82,41 @@ describe 'NodeState', ->
       class TestState extends NodeState
         states:
           A: Enter: -> @goto 'B'
-          B: Enter: done
+          B: Enter: -> done()
 
       new TestState autostart: yes
 
-    it 'retains current_data when goto is called with 1 argument', (done) ->
+    it 'retains old data when goto is called with 1 argument', (done) ->
       class TestState extends NodeState
         states:
           A: Enter: ->
             @goto 'B'
           B: Enter: (data) ->
-            data.should.equal 1
+            data.should.equal 'initial-data'
             done()
 
-      new TestState autostart: yes, initial_data: 1
+      new TestState autostart: yes, initial_data: 'initial-data'
+
+    it 'use passed data when goto is called with 2 argument', (done) ->
+      class TestState extends NodeState
+        states:
+          A: Enter: ->
+            @goto 'B', 'the-new-data'
+          B: Enter: (data) ->
+            data.should.equal 'the-new-data'
+            done()
+
+      new TestState autostart: yes, initial_data: 'the-old-data'
 
     it 'honors goto calls from transition callbacks', (done) ->
       class TestState extends NodeState
         states:
           A: Enter: -> @goto 'B'
           B: {}
-          C: Enter: done
+          C: Enter: -> done()
 
         transitions:
-          A: B: (data, callback) ->
-            @goto 'C'
+          A: B: (data, callback) -> @goto 'C'
 
       new TestState autostart: yes
 
@@ -287,8 +284,7 @@ describe 'NodeState', ->
               @raise 'Foo'
               done()
             Foo: ->
-              'event called'.should.equal null
-              done()
+              done 'event callback called'
 
       new TestState autostart: yes
 
@@ -297,12 +293,11 @@ describe 'NodeState', ->
         states:
           A:
             Enter: ->
-              @wait 50
+              @wait 10
               @stop()
-              done()
+              setTimeout done, 10
             WaitTimeout: ->
-              'wait timeout called'.should.equal null
-              done()
+              done 'wait timeout called'
 
       new TestState autostart: yes
 
@@ -315,18 +310,15 @@ describe 'NodeState', ->
         states:
           A:
             Enter: ->
-              if @enteredB
-                'entered state A after B'.should.equal null
-                done()
+              done('entered state A after B') if @enteredB
               @goto 'B'
           B:
             Enter: ->
-              if @enteredB
-                done()
-              else
-                @enteredB = yes
-                @stop()
-                process.nextTick => @start()
+              return done() if @enteredB
+
+              @enteredB = yes
+              @stop()
+              process.nextTick => @start()
 
       new TestState autostart: yes
 
@@ -339,9 +331,7 @@ describe 'NodeState', ->
         states:
           A:
             Enter: ->
-              if @enteredB
-                'entered state A after B'.should.equal null
-                done()
+              done('entered state A after B') if @enteredB
               @goto 'B'
           B:
             Enter: (data) ->
@@ -365,8 +355,7 @@ describe 'NodeState', ->
               @raise 'Foo'
               done()
             Foo: ->
-              'event called'.should.equal null
-              done()
+              done 'event callback called'
 
       new TestState autostart: yes
 
@@ -378,8 +367,7 @@ describe 'NodeState', ->
             @goto 'B'
             done()
           B: Enter: ->
-            'goto B executed'.should.equal null
-            done()
+            done 'in B'
 
       new TestState autostart: yes
 
@@ -388,13 +376,11 @@ describe 'NodeState', ->
         states:
           A: Enter: ->
             setTimeout(
-              @wrapCb ->
-                'wrapped callback called'.should.equal null
-                done()
+              @wrapCb -> done 'wrapped callback called'
               10
             )
             @disable()
-            done()
+            setTimeout done, 10
 
       new TestState autostart: yes
 
