@@ -1,8 +1,8 @@
-EventEmitter2 = require('eventemitter2').EventEmitter2
+EventEmitter = require('events').EventEmitter
 
 class NodeState
   constructor: (@config = {}) ->
-    @_notifier = new EventEmitter2(wildcard: true)
+    @_notifier = new EventEmitter
     @disabled = false
 
     # supply the proper context of 'this' to events
@@ -31,10 +31,6 @@ class NodeState
     @config.autostart ?= false
     @config.sync_goto ?= false
 
-    # setup default events
-    for state_name, events of @states
-      @states[state_name]['Enter'] ?= (data) ->
-        @current_data = data
     if @config.autostart
       @goto @current_state_name
 
@@ -59,9 +55,6 @@ class NodeState
     callback = (data) =>
       @current_data = data
       @_notifier.emit 'Enter', @current_data
-
-    transition = (data, cb) =>
-      cb data
 
     transition =
       @transitions[previous_state_name]?[state_name] ?

@@ -15,9 +15,6 @@
   "engines": {
     "node": ">=0.6.6"
   },
-  "dependencies": {
-    "eventemitter2": "0.4.8"
-  },
   "devDependencies": {
     "mocha": "*"
   , "chai": "*"
