@@ -130,7 +130,11 @@ class MyStateMachine extends NodeState
 + `@stop` - Unregisters all event handlers for the state machine, effectively turning it off.  In the future, pre- and post-stop event hooks may be added to allow for additional cleanup during shutdown.
 
 ## History
-+ v1.3.0 - bugfixes and `sync_goto` option to constructor
++ v1.4.0
+  - added enable/disable methods
+  - rewrote tests to use mocha/chai
++ v1.3.0
+  - bugfixes and `sync_goto` option to constructor
 
 ## Credits
 + originally published by [Nick Fisher]("https://github.com/nrf110")
