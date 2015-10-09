@@ -87,7 +87,7 @@ class NodeState
 
   stop: ->
     @_notifier.removeAllListeners()
-    @unwait
+    @unwait()
 
   disable: ->
     return if @disabled
