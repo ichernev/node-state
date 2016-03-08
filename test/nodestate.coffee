@@ -301,6 +301,22 @@ describe 'NodeState', ->
 
       new TestState autostart: yes
 
+    it 'clears the wait timeout after stop', (done) ->
+      class TestState extends NodeState
+        states:
+          A:
+            Enter: ->
+              @wait 10
+              @stop()
+              setTimeout =>
+                @_current_timeout._called.should.be.false
+                done()
+              , 10
+            WaitTimeout: ->
+              done 'wait timeout called'
+
+      new TestState autostart: yes
+
     it 'enters the last state on start', (done) ->
       class TestState extends NodeState
         constructor: ->
