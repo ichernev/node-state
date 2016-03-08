@@ -5,7 +5,7 @@
   ],
   "name": "node-state",
   "description": "A finite state machine (FSM) implementation for node.js",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "main": "index",
   "homepage": "https://github.com/ichernev/node-state",
   "repository": {
